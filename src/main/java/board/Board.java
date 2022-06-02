@@ -172,37 +172,46 @@ public class Board implements Constants {
     }
     //int[] nbdir = {0, 8, 4, 4, 8, 8};
 
-    private void gen(int c) {
-        int p = piece[c];
-        for (int d = 0; d < nbdir[piece[c]]; ++d)
-            if (piece[c] == CAVALIER || piece[c] == ROI) CAVALIER_ROI(c, p, d, c);
-            else DAME_FOU_TOUR(c, p, d, c);
+    private void gen(int cO) {
+        int p = piece[cO];
+
+        switch (piece[cO]) {
+            case CAVALIER:
+            case ROI:
+                for (int d = 0; d < 8; ++d)
+                    CAVALIER_ROI(cO, p, d, cO);
+                break;
+            default:
+                for (int d = 0; d < (p==DAME ? 8 : 4); ++d)
+                    DAME_FOU_TOUR(cO, p, d, cO);
+                break;
+        }
     }
 
-    private void CAVALIER_ROI(int c, int p, int d, int _c) {
-        while ((_c = g(p, _c, d)) != -1) {
-            if (test(c, _c)) break;
-            gen_push(c, _c, 0);
+    private void CAVALIER_ROI(int cO, int p, int d, int cX) {
+        while ((cX = g(p, cX, d)) != -1) {
+            if (test(cO, cX)) break;
+            gen_push(cO, cX, 0);
             break;
         }
     }
 
-    private void DAME_FOU_TOUR(int c, int p, int d, int _c) {
-        while ((_c = g(p, _c, d)) != -1) {
-            if (test(c, _c)) break;
-            gen_push(c, _c, 0);
+    private void DAME_FOU_TOUR(int cO, int p, int d, int cX) {
+        while ((cX = g(p, cX, d)) != -1) {
+            if (test(cO, cX)) break;
+            gen_push(cO, cX, 0);
         }
     }
 
-    private boolean test(int c, int _c) {
-        int couleur = color[_c];
+    private boolean test(int cO, int cX) {
+        int couleur = color[cX];
         if (couleur == VIDE) return false;
-        if (couleur == notrait) gen_push(c, _c, 1);
+        if (couleur == notrait) gen_push(cO, cX, 1);
         return true;
     }
 
-    private int g(int p, int _c, int d) {
-        return mailbox[mailbox64[_c] + dirs[p][d]];
+    private int g(int p, int cX, int d) {
+        return mailbox[mailbox64[cX] + dirs[p][d]];
     }
 
     private void gen_push(int from, int to, int bits) {
