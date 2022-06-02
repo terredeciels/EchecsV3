@@ -170,18 +170,18 @@ public class Board implements Constants {
         }
 
     }
-    int[] offsets = {0, 8, 4, 4, 8, 8};
+    //int[] nbdir = {0, 8, 4, 4, 8, 8};
 
     private void gen(int c) {
         int p = piece[c];
-        for (int d = 0; d < offsets[piece[c]]; ++d)
+        for (int d = 0; d < nbdir[piece[c]]; ++d)
             if (piece[c] == CAVALIER || piece[c] == ROI) CAVALIER_ROI(c, p, d, c);
             else DAME_FOU_TOUR(c, p, d, c);
     }
 
     private void CAVALIER_ROI(int c, int p, int d, int _c) {
         while ((_c = g(p, _c, d)) != -1) {
-            if (extracted(c, _c)) break;
+            if (test(c, _c)) break;
             gen_push(c, _c, 0);
             break;
         }
@@ -189,12 +189,12 @@ public class Board implements Constants {
 
     private void DAME_FOU_TOUR(int c, int p, int d, int _c) {
         while ((_c = g(p, _c, d)) != -1) {
-            if (extracted(c, _c)) break;
+            if (test(c, _c)) break;
             gen_push(c, _c, 0);
         }
     }
 
-    private boolean extracted(int c, int _c) {
+    private boolean test(int c, int _c) {
         int couleur = color[_c];
         if (couleur == VIDE) return false;
         if (couleur == notrait) gen_push(c, _c, 1);
