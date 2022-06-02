@@ -16,10 +16,12 @@ public class Board extends Piece implements Constants {
     public int castle;
     public int ep;
     public List<Move> pseudomoves = new ArrayList<>();
-    private int fifty;
-    private UndoMove um = new UndoMove();
     public int halfMoveClock;
     public int plyNumber;
+    public String[] piece_char_light = {"P", "N", "B", "R", "Q", "K"};
+    public String[] piece_char_dark = {"p", "n", "b", "r", "q", "k"};
+    private int fifty;
+    private UndoMove um = new UndoMove();
 
     public Board() {
     }
@@ -66,8 +68,8 @@ public class Board extends Piece implements Constants {
                     }
                 } else {
                     for (int j = 0; j < offsets[piece[i]]; ++j) {
-                        for (int n = i;;) {
-                            n = mailbox[mailbox64[n] + offset[piece[i]][j]];
+                        for (int n = i; ; ) {
+                            n = getMailbox(piece[i], j, n);
                             if (n == -1) {
                                 break;
                             }
@@ -173,25 +175,52 @@ public class Board extends Piece implements Constants {
         int p = piece[c];
         Piece q = pieces[c];
 
+        int[] offsets = {0, 8, 4, 4, 8, 8};
         for (int d = 0; d < offsets[p]; ++d) {
             int _c = c;
-            while (true) {
-                _c = mailbox[mailbox64[_c] + offset[p][d]];
-                if (_c == -1) {
-                    break;
-                }
-                if (color[_c] != EMPTY) {
-                    if (color[_c] == xside) {
-                        gen_push(c, _c, 1);
+            if (!slide[p]) {// Cavalier, roi // offsers = 8
+                 while ((_c = getMailbox(p, d, _c)) != -1) {
+               // if ((_c = getMailbox(p, d, _c)) != -1) {
+                    //_c = getMailbox(p, d, _c);
+//                if (_c == -1) {
+//                    break;
+//                }
+                    if (color[_c] != EMPTY) {
+                        if (color[_c] == xside) {
+                            gen_push(c, _c, 1);
+                        }
+                        break;
                     }
+                    gen_push(c, _c, 0);
+                    // if (!slide[p]) {
                     break;
+                    // }
                 }
-                gen_push(c, _c, 0);
-                if (!slide[p]) {
-                    break;
+            } else { // DAME (8), FOU(4), TOUR(4)
+                while ((_c = getMailbox(p, d, _c)) != -1) {
+                    //_c = getMailbox(p, d, _c);
+//                if (_c == -1) {
+//                    break;
+//                }
+                    if (color[_c] != EMPTY) {
+                        if (color[_c] == xside) {
+                            gen_push(c, _c, 1);
+                        }
+                        break;
+                    }
+                    gen_push(c, _c, 0);
+                    //if (slide[p]) {
+                      //  continue;
+                   // }
+                   // break;
                 }
             }
+
         }
+    }
+
+    private int getMailbox(int p, int d, int _c) {
+        return mailbox[mailbox64[_c] + offset[p][d]];
     }
 
     private void gen_push(int from, int to, int bits) {
@@ -383,8 +412,6 @@ public class Board extends Piece implements Constants {
             }
         }
     }
-    public String[] piece_char_light = {"P", "N", "B", "R", "Q", "K"};
-    public String[] piece_char_dark = {"p", "n", "b", "r", "q", "k"};
 
     public void print_board() {
         int i;

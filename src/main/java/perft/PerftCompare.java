@@ -3,18 +3,18 @@ package perft;
 import board.Board;
 import board.Constants;
 import board.Move;
+import tools.FenToBoard;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
-import tools.FenToBoard;
 
 public class PerftCompare implements Constants {
 
     public static void main(String[] args) throws IOException {
         int maxDepth = 4;
-        FileReader fileReader = new FileReader("C:\\Users\\gille\\IdeaProjects\\EchecsV2\\src\\main\\java\\perft\\perftsuite.epd");
+        FileReader fileReader = new FileReader("C:\\Users\\gille\\IdeaProjects\\EchecsV3\\src\\main\\java\\perft\\perftsuite.epd");
         BufferedReader reader = new BufferedReader(fileReader);
         String line;
         int passes = 0;
