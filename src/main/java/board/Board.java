@@ -3,7 +3,7 @@ package board;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Board extends Piece implements Constants {
+public class Board implements Constants {
 
     public int[] color = new int[64];
     public int[] piece = new int[64];
@@ -40,7 +40,7 @@ public class Board extends Piece implements Constants {
 
     private boolean in_check(int s) {
         for (int i = 0; i < 64; ++i) {
-            if (piece[i] == KING && color[i] == s) {
+            if (piece[i] == ROI && color[i] == s) {
                 return attack(i, s ^ 1);
             }
         }
@@ -50,7 +50,7 @@ public class Board extends Piece implements Constants {
     private boolean attack(int sq, int s) {
         for (int i = 0; i < 64; ++i) {
             if (color[i] == s) {
-                if (piece[i] == PAWN) {
+                if (piece[i] == PION) {
                     if (s == LIGHT) {
                         if ((i & 7) != 0 && i - 9 == sq) {
                             return true;
@@ -67,7 +67,7 @@ public class Board extends Piece implements Constants {
                         }
                     }
                 } else {
-                    for (int j = 0; j < offsets[piece[i]]; ++j) {
+                    for (int j = 0; j < nbdir[piece[i]]; ++j) {
                         for (int n = i; ; ) {
                             n = getMailbox(piece[i], j, n);
                             if (n == -1) {
@@ -76,10 +76,10 @@ public class Board extends Piece implements Constants {
                             if (n == sq) {
                                 return true;
                             }
-                            if (color[n] != EMPTY) {
+                            if (color[n] != VIDE) {
                                 break;
                             }
-                            if (!slide[piece[i]]) {
+                            if (!glisse[piece[i]]) {
                                 break;
                             }
                         }
@@ -97,7 +97,7 @@ public class Board extends Piece implements Constants {
 
         for (c = 0; c < 64; ++c) {
             if (color[c] == side) {
-                if (piece[c] == PAWN) {
+                if (piece[c] == PION) {
                     if (side == LIGHT) {
                         if ((c & 7) != 0 && color[c - 9] == DARK) {
                             gen_push(c, c - 9, 17);
@@ -105,9 +105,9 @@ public class Board extends Piece implements Constants {
                         if ((c & 7) != 7 && color[c - 7] == DARK) {
                             gen_push(c, c - 7, 17);
                         }
-                        if (color[c - 8] == EMPTY) {
+                        if (color[c - 8] == VIDE) {
                             gen_push(c, c - 8, 16);
-                            if (c >= 48 && color[c - 16] == EMPTY) {
+                            if (c >= 48 && color[c - 16] == VIDE) {
                                 gen_push(c, c - 16, 24);
                             }
                         }
@@ -118,9 +118,9 @@ public class Board extends Piece implements Constants {
                         if ((c & 7) != 7 && color[c + 9] == LIGHT) {
                             gen_push(c, c + 9, 17);
                         }
-                        if (color[c + 8] == EMPTY) {
+                        if (color[c + 8] == VIDE) {
                             gen_push(c, c + 8, 16);
-                            if (c <= 15 && color[c + 16] == EMPTY) {
+                            if (c <= 15 && color[c + 16] == VIDE) {
                                 gen_push(c, c + 16, 24);
                             }
                         }
@@ -153,17 +153,17 @@ public class Board extends Piece implements Constants {
         /* generate en passant moves */
         if (ep != -1) {
             if (side == LIGHT) {
-                if ((ep & 7) != 0 && color[ep + 7] == LIGHT && piece[ep + 7] == PAWN) {
+                if ((ep & 7) != 0 && color[ep + 7] == LIGHT && piece[ep + 7] == PION) {
                     gen_push(ep + 7, ep, 21);
                 }
-                if ((ep & 7) != 7 && color[ep + 9] == LIGHT && piece[ep + 9] == PAWN) {
+                if ((ep & 7) != 7 && color[ep + 9] == LIGHT && piece[ep + 9] == PION) {
                     gen_push(ep + 9, ep, 21);
                 }
             } else {
-                if ((ep & 7) != 0 && color[ep - 9] == DARK && piece[ep - 9] == PAWN) {
+                if ((ep & 7) != 0 && color[ep - 9] == DARK && piece[ep - 9] == PION) {
                     gen_push(ep - 9, ep, 21);
                 }
-                if ((ep & 7) != 7 && color[ep - 7] == DARK && piece[ep - 7] == PAWN) {
+                if ((ep & 7) != 7 && color[ep - 7] == DARK && piece[ep - 7] == PION) {
                     gen_push(ep - 7, ep, 21);
                 }
             }
@@ -173,46 +173,30 @@ public class Board extends Piece implements Constants {
 
     private void gen(int c) {
         int p = piece[c];
-        Piece q = pieces[c];
 
         int[] offsets = {0, 8, 4, 4, 8, 8};
         for (int d = 0; d < offsets[p]; ++d) {
             int _c = c;
-            if (!slide[p]) {// Cavalier, roi // offsers = 8
-                 while ((_c = getMailbox(p, d, _c)) != -1) {
-               // if ((_c = getMailbox(p, d, _c)) != -1) {
-                    //_c = getMailbox(p, d, _c);
-//                if (_c == -1) {
-//                    break;
-//                }
-                    if (color[_c] != EMPTY) {
+            if (p == CAVALIER || p == ROI) {
+                while ((_c = getMailbox(p, d, _c)) != -1) {
+                    if (color[_c] != VIDE) {
                         if (color[_c] == xside) {
                             gen_push(c, _c, 1);
                         }
                         break;
                     }
                     gen_push(c, _c, 0);
-                    // if (!slide[p]) {
                     break;
-                    // }
                 }
             } else { // DAME (8), FOU(4), TOUR(4)
                 while ((_c = getMailbox(p, d, _c)) != -1) {
-                    //_c = getMailbox(p, d, _c);
-//                if (_c == -1) {
-//                    break;
-//                }
-                    if (color[_c] != EMPTY) {
+                    if (color[_c] != VIDE) {
                         if (color[_c] == xside) {
                             gen_push(c, _c, 1);
                         }
                         break;
                     }
                     gen_push(c, _c, 0);
-                    //if (slide[p]) {
-                      //  continue;
-                   // }
-                   // break;
                 }
             }
 
@@ -220,7 +204,7 @@ public class Board extends Piece implements Constants {
     }
 
     private int getMailbox(int p, int d, int _c) {
-        return mailbox[mailbox64[_c] + offset[p][d]];
+        return mailbox[mailbox64[_c] + dirs[p][d]];
     }
 
     private void gen_push(int from, int to, int bits) {
@@ -240,7 +224,7 @@ public class Board extends Piece implements Constants {
     }
 
     private void gen_promote(int from, int to, int bits) {
-        for (int i = KNIGHT; i <= QUEEN; ++i) {
+        for (int i = CAVALIER; i <= DAME; ++i) {
             pseudomoves.add(new Move((byte) from, (byte) to, (byte) i, (byte) (bits | 32)));
         }
     }
@@ -255,28 +239,28 @@ public class Board extends Piece implements Constants {
             }
             switch (m.to) {
                 case 62:
-                    if (color[F1] != EMPTY || color[G1] != EMPTY || attack(F1, xside) || attack(G1, xside)) {
+                    if (color[F1] != VIDE || color[G1] != VIDE || attack(F1, xside) || attack(G1, xside)) {
                         return false;
                     }
                     from = H1;
                     to = F1;
                     break;
                 case 58:
-                    if (color[B1] != EMPTY || color[C1] != EMPTY || color[D1] != EMPTY || attack(C1, xside) || attack(D1, xside)) {
+                    if (color[B1] != VIDE || color[C1] != VIDE || color[D1] != VIDE || attack(C1, xside) || attack(D1, xside)) {
                         return false;
                     }
                     from = A1;
                     to = D1;
                     break;
                 case 6:
-                    if (color[F8] != EMPTY || color[G8] != EMPTY || attack(F8, xside) || attack(G8, xside)) {
+                    if (color[F8] != VIDE || color[G8] != VIDE || attack(F8, xside) || attack(G8, xside)) {
                         return false;
                     }
                     from = H8;
                     to = F8;
                     break;
                 case 2:
-                    if (color[B8] != EMPTY || color[C8] != EMPTY || color[D8] != EMPTY || attack(C8, xside) || attack(D8, xside)) {
+                    if (color[B8] != VIDE || color[C8] != VIDE || color[D8] != VIDE || attack(C8, xside) || attack(D8, xside)) {
                         return false;
                     }
                     from = A8;
@@ -289,8 +273,8 @@ public class Board extends Piece implements Constants {
             }
             color[to] = color[from];
             piece[to] = piece[from];
-            color[from] = EMPTY;
-            piece[from] = EMPTY;
+            color[from] = VIDE;
+            piece[from] = VIDE;
         }
 
         /* back up information, so we can take the move back later. */
@@ -324,17 +308,17 @@ public class Board extends Piece implements Constants {
         } else {
             piece[m.to] = piece[m.from];
         }
-        color[m.from] = EMPTY;
-        piece[m.from] = EMPTY;
+        color[m.from] = VIDE;
+        piece[m.from] = VIDE;
 
         /* erase the pawn if this is an en passant move */
         if ((m.bits & 4) != 0) {
             if (side == LIGHT) {
-                color[m.to + 8] = EMPTY;
-                piece[m.to + 8] = EMPTY;
+                color[m.to + 8] = VIDE;
+                piece[m.to + 8] = VIDE;
             } else {
-                color[m.to - 8] = EMPTY;
-                piece[m.to - 8] = EMPTY;
+                color[m.to - 8] = VIDE;
+                piece[m.to - 8] = VIDE;
             }
         }
 
@@ -360,13 +344,13 @@ public class Board extends Piece implements Constants {
 
         color[m.from] = side;
         if ((m.bits & 32) != 0) {
-            piece[m.from] = PAWN;
+            piece[m.from] = PION;
         } else {
             piece[m.from] = piece[m.to];
         }
-        if (um.capture == EMPTY) {
-            color[m.to] = EMPTY;
-            piece[m.to] = EMPTY;
+        if (um.capture == VIDE) {
+            color[m.to] = VIDE;
+            piece[m.to] = VIDE;
         } else {
             color[m.to] = xside;
             piece[m.to] = um.capture;
@@ -398,17 +382,17 @@ public class Board extends Piece implements Constants {
                     break;
             }
             color[to] = side;
-            piece[to] = ROOK;
-            color[from] = EMPTY;
-            piece[from] = EMPTY;
+            piece[to] = TOUR;
+            color[from] = VIDE;
+            piece[from] = VIDE;
         }
         if ((m.bits & 4) != 0) {
             if (side == LIGHT) {
                 color[m.to + 8] = xside;
-                piece[m.to + 8] = PAWN;
+                piece[m.to + 8] = PION;
             } else {
                 color[m.to - 8] = xside;
-                piece[m.to - 8] = PAWN;
+                piece[m.to - 8] = PION;
             }
         }
     }
@@ -419,7 +403,7 @@ public class Board extends Piece implements Constants {
         System.out.print("\n8 ");
         for (i = 0; i < 64; ++i) {
             switch (color[i]) {
-                case EMPTY:
+                case VIDE:
                     System.out.print(". ");
                     break;
                 case LIGHT:

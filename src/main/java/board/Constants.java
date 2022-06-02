@@ -36,7 +36,7 @@ public interface Constants {
 
     int[] mailbox64 = {21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33, 34, 35, 36, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 51, 52, 53, 54, 55, 56, 57, 58, 61, 62, 63, 64, 65, 66, 67, 68, 71, 72, 73, 74, 75, 76, 77, 78, 81, 82, 83, 84, 85, 86, 87, 88, 91, 92, 93, 94, 95, 96, 97, 98};
 
-    Piece Cavalier = new Piece(1, LIGHT, 8, new int[]{-21, -19, -12, -8, 8, 12, 19, 21}, false);
+   // Piece Cavalier = new Piece(1, LIGHT, 8, new int[]{-21, -19, -12, -8, 8, 12, 19, 21}, false);
     //
 //    class Pion extends Piece{
 //        int pion = 0;
@@ -60,10 +60,10 @@ public interface Constants {
 //    }
 //
 //
-    int PAWN = 0, KNIGHT = 1, BISHOP = 2, ROOK = 3, QUEEN = 4, KING = 5;
-    int EMPTY = 6;
-    boolean[] slide = {false, false, true, true, true, false};
-    int[] offsets = {0, 8, 4, 4, 8, 8};
+    int PION = 0, CAVALIER = 1, FOU = 2, TOUR = 3, DAME = 4, ROI = 5;
+    int VIDE = 6;
+    boolean[] glisse = {false, false, true, true, true, false};
+    int[] nbdir = {0, 8, 4, 4, 8, 8};
     int[] P = {0, 0, 0, 0, 0, 0, 0, 0};
     int E = 1,N=-10;
     int[] C = {-21, -19, -12, -8, 8, 12, 19, 21};
@@ -72,7 +72,7 @@ public interface Constants {
     int[] D = {N-E, N, N+E, -E, E, -(N+E), -N, E-N};
     int[] R = {N-E, N, N+E, -E, E, -(N+E), -N, E-N};
 
-    int[][] offset = {P, C, F, T, D, R};
+    int[][] dirs = {P, C, F, T, D, R};
 
 
     int[] castle_mask = {7, 15, 15, 15, 3, 15, 15, 11, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 13, 15, 15, 15, 12, 15, 15, 14};

@@ -161,7 +161,7 @@ public class FenToBoard implements Constants {
                 : abs(stone) == 6 ? 5
                 : abs(stone) == 5 ? 0 : abs(stone);
         board.color[_case]
-                = stone < 0 ? LIGHT : stone > 0 ? DARK : EMPTY;
+                = stone < 0 ? LIGHT : stone > 0 ? DARK : VIDE;
     }
 
     static int abs(int x) {
