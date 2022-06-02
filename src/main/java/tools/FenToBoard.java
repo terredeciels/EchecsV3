@@ -151,7 +151,7 @@ public class FenToBoard implements Constants {
 
     static void setToPlay(int side) {
         board.side = side;
-        board.xside = board.side == LIGHT ? DARK : LIGHT;
+        board.notrait = board.side == LIGHT ? DARK : LIGHT;
     }
 
     static void setStone(int j, int i, int stone) {

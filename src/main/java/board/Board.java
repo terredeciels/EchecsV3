@@ -11,7 +11,7 @@ public class Board implements Constants {
     public Piece[] pieces = new Piece[64];
 
     public int side;
-    public int xside;
+    public int notrait;
 
     public int castle;
     public int ep;
@@ -30,7 +30,7 @@ public class Board implements Constants {
         color = board.color;
         piece = board.piece;
         side = board.side;
-        xside = board.xside;
+        notrait = board.notrait;
         castle = board.castle;
         ep = board.ep;
         fifty = board.fifty;
@@ -69,7 +69,7 @@ public class Board implements Constants {
                 } else {
                     for (int j = 0; j < nbdir[piece[i]]; ++j) {
                         for (int n = i; ; ) {
-                            n = getMailbox(piece[i], j, n);
+                            n = g(piece[i], n, j);
                             if (n == -1) {
                                 break;
                             }
@@ -170,40 +170,38 @@ public class Board implements Constants {
         }
 
     }
+    int[] offsets = {0, 8, 4, 4, 8, 8};
 
     private void gen(int c) {
         int p = piece[c];
+        for (int d = 0; d < offsets[piece[c]]; ++d)
+            if (piece[c] == CAVALIER || piece[c] == ROI) CAVALIER_ROI(c, p, d, c);
+            else DAME_FOU_TOUR(c, p, d, c);
+    }
 
-        int[] offsets = {0, 8, 4, 4, 8, 8};
-        for (int d = 0; d < offsets[p]; ++d) {
-            int _c = c;
-            if (p == CAVALIER || p == ROI) {
-                while ((_c = getMailbox(p, d, _c)) != -1) {
-                    if (color[_c] != VIDE) {
-                        if (color[_c] == xside) {
-                            gen_push(c, _c, 1);
-                        }
-                        break;
-                    }
-                    gen_push(c, _c, 0);
-                    break;
-                }
-            } else { // DAME (8), FOU(4), TOUR(4)
-                while ((_c = getMailbox(p, d, _c)) != -1) {
-                    if (color[_c] != VIDE) {
-                        if (color[_c] == xside) {
-                            gen_push(c, _c, 1);
-                        }
-                        break;
-                    }
-                    gen_push(c, _c, 0);
-                }
-            }
-
+    private void CAVALIER_ROI(int c, int p, int d, int _c) {
+        while ((_c = g(p, _c, d)) != -1) {
+            if (extracted(c, _c)) break;
+            gen_push(c, _c, 0);
+            break;
         }
     }
 
-    private int getMailbox(int p, int d, int _c) {
+    private void DAME_FOU_TOUR(int c, int p, int d, int _c) {
+        while ((_c = g(p, _c, d)) != -1) {
+            if (extracted(c, _c)) break;
+            gen_push(c, _c, 0);
+        }
+    }
+
+    private boolean extracted(int c, int _c) {
+        int couleur = color[_c];
+        if (couleur == VIDE) return false;
+        if (couleur == notrait) gen_push(c, _c, 1);
+        return true;
+    }
+
+    private int g(int p, int _c, int d) {
         return mailbox[mailbox64[_c] + dirs[p][d]];
     }
 
@@ -239,28 +237,28 @@ public class Board implements Constants {
             }
             switch (m.to) {
                 case 62:
-                    if (color[F1] != VIDE || color[G1] != VIDE || attack(F1, xside) || attack(G1, xside)) {
+                    if (color[F1] != VIDE || color[G1] != VIDE || attack(F1, notrait) || attack(G1, notrait)) {
                         return false;
                     }
                     from = H1;
                     to = F1;
                     break;
                 case 58:
-                    if (color[B1] != VIDE || color[C1] != VIDE || color[D1] != VIDE || attack(C1, xside) || attack(D1, xside)) {
+                    if (color[B1] != VIDE || color[C1] != VIDE || color[D1] != VIDE || attack(C1, notrait) || attack(D1, notrait)) {
                         return false;
                     }
                     from = A1;
                     to = D1;
                     break;
                 case 6:
-                    if (color[F8] != VIDE || color[G8] != VIDE || attack(F8, xside) || attack(G8, xside)) {
+                    if (color[F8] != VIDE || color[G8] != VIDE || attack(F8, notrait) || attack(G8, notrait)) {
                         return false;
                     }
                     from = H8;
                     to = F8;
                     break;
                 case 2:
-                    if (color[B8] != VIDE || color[C8] != VIDE || color[D8] != VIDE || attack(C8, xside) || attack(D8, xside)) {
+                    if (color[B8] != VIDE || color[C8] != VIDE || color[D8] != VIDE || attack(C8, notrait) || attack(D8, notrait)) {
                         return false;
                     }
                     from = A8;
@@ -323,8 +321,8 @@ public class Board implements Constants {
         }
 
         side ^= 1;
-        xside ^= 1;
-        if (in_check(xside)) {
+        notrait ^= 1;
+        if (in_check(notrait)) {
             takeback();
             return false;
         }
@@ -335,7 +333,7 @@ public class Board implements Constants {
     public void takeback() {
 
         side ^= 1;
-        xside ^= 1;
+        notrait ^= 1;
 
         Move m = um.mov;
         castle = um.castle;
@@ -352,7 +350,7 @@ public class Board implements Constants {
             color[m.to] = VIDE;
             piece[m.to] = VIDE;
         } else {
-            color[m.to] = xside;
+            color[m.to] = notrait;
             piece[m.to] = um.capture;
         }
         if ((m.bits & 2) != 0) {
@@ -388,10 +386,10 @@ public class Board implements Constants {
         }
         if ((m.bits & 4) != 0) {
             if (side == LIGHT) {
-                color[m.to + 8] = xside;
+                color[m.to + 8] = notrait;
                 piece[m.to + 8] = PION;
             } else {
-                color[m.to - 8] = xside;
+                color[m.to - 8] = notrait;
                 piece[m.to - 8] = PION;
             }
         }
