@@ -58,10 +58,10 @@ public class FenToBoard implements Constants {
             ch = fen.charAt(index + 1);
             switch (ch) {
                 case 'w':
-                    setToPlay(LIGHT);
+                    setToPlay(BLANC);
                     break;
                 case 'b':
-                    setToPlay(DARK);
+                    setToPlay(NOIR);
                     break;
                 default:
                     throw new IllegalArgumentException("Malformatted fen string: expected 'to play' as second field but found " + ch);
@@ -132,7 +132,7 @@ public class FenToBoard implements Constants {
         /*========== 6th field : full move number ==========*/
         if (index + 1 < fen.length() && fen.charAt(index) == ' ') {
             int i = 2 * (Integer.parseInt(fen.substring(index + 1)) - 1);
-            if (board.side == LIGHT) {
+            if (board.trait == BLANC) {
                 setPlyNumber(i);
             } else {
                 setPlyNumber(i + 1);
@@ -150,8 +150,8 @@ public class FenToBoard implements Constants {
     }
 
     static void setToPlay(int side) {
-        board.side = side;
-        board.notrait = board.side == LIGHT ? DARK : LIGHT;
+        board.trait = side;
+        board.notrait = board.trait == BLANC ? NOIR : BLANC;
     }
 
     static void setStone(int j, int i, int stone) {
@@ -161,7 +161,7 @@ public class FenToBoard implements Constants {
                 : abs(stone) == 6 ? 5
                 : abs(stone) == 5 ? 0 : abs(stone);
         board.color[_case]
-                = stone < 0 ? LIGHT : stone > 0 ? DARK : VIDE;
+                = stone < 0 ? BLANC : stone > 0 ? NOIR : VIDE;
     }
 
     static int abs(int x) {

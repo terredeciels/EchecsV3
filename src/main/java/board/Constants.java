@@ -12,8 +12,8 @@ public interface Constants {
             BLACK_SHORT_CASTLE = 8;
     short MIN_STONE = -6, MAX_STONE = 6, NO_STONE = 0;
     int NO_COL = -1, NO_ROW = -1, NO_SQUARE = -1;
-    int LIGHT = 0;
-    int DARK = 1;
+    int BLANC = 0;
+    int NOIR = 1;
 
     int A1 = 56;
     int B1 = 57;

@@ -3,6 +3,8 @@ package board;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.stream.IntStream.range;
+
 public class Board implements Constants {
 
     public int[] color = new int[64];
@@ -10,7 +12,7 @@ public class Board implements Constants {
 
     public Piece[] pieces = new Piece[64];
 
-    public int side;
+    public int trait;
     public int notrait;
 
     public int castle;
@@ -29,7 +31,7 @@ public class Board implements Constants {
     public Board(Board board) {
         color = board.color;
         piece = board.piece;
-        side = board.side;
+        trait = board.trait;
         notrait = board.notrait;
         castle = board.castle;
         ep = board.ep;
@@ -51,7 +53,7 @@ public class Board implements Constants {
         for (int i = 0; i < 64; ++i) {
             if (color[i] == s) {
                 if (piece[i] == PION) {
-                    if (s == LIGHT) {
+                    if (s == BLANC) {
                         if ((i & 7) != 0 && i - 9 == sq) {
                             return true;
                         }
@@ -91,18 +93,14 @@ public class Board implements Constants {
     }
 
     public void gen() {
-        int c;
-        int j;
-        int n;
-
-        for (c = 0; c < 64; ++c) {
-            if (color[c] == side) {
+             for (int c = 0; c < 64; ++c) {
+            if (color_trait(c)) {
                 if (piece[c] == PION) {
-                    if (side == LIGHT) {
-                        if ((c & 7) != 0 && color[c - 9] == DARK) {
+                    if (trait == BLANC) {
+                        if ((c & 7) != 0 && color[c - 9] == NOIR) {
                             gen_push(c, c - 9, 17);
                         }
-                        if ((c & 7) != 7 && color[c - 7] == DARK) {
+                        if ((c & 7) != 7 && color[c - 7] == NOIR) {
                             gen_push(c, c - 7, 17);
                         }
                         if (color[c - 8] == VIDE) {
@@ -112,10 +110,10 @@ public class Board implements Constants {
                             }
                         }
                     } else {
-                        if ((c & 7) != 0 && color[c + 7] == LIGHT) {
+                        if ((c & 7) != 0 && color[c + 7] == BLANC) {
                             gen_push(c, c + 7, 17);
                         }
-                        if ((c & 7) != 7 && color[c + 9] == LIGHT) {
+                        if ((c & 7) != 7 && color[c + 9] == BLANC) {
                             gen_push(c, c + 9, 17);
                         }
                         if (color[c + 8] == VIDE) {
@@ -134,7 +132,7 @@ public class Board implements Constants {
         }
 
         /* generate castle moves */
-        if (side == LIGHT) {
+        if (trait == BLANC) {
             if ((castle & 1) != 0) {
                 gen_push(E1, G1, 2);
             }
@@ -152,25 +150,28 @@ public class Board implements Constants {
 
         /* generate en passant moves */
         if (ep != -1) {
-            if (side == LIGHT) {
-                if ((ep & 7) != 0 && color[ep + 7] == LIGHT && piece[ep + 7] == PION) {
+            if (trait == BLANC) {
+                if ((ep & 7) != 0 && color[ep + 7] == BLANC && piece[ep + 7] == PION) {
                     gen_push(ep + 7, ep, 21);
                 }
-                if ((ep & 7) != 7 && color[ep + 9] == LIGHT && piece[ep + 9] == PION) {
+                if ((ep & 7) != 7 && color[ep + 9] == BLANC && piece[ep + 9] == PION) {
                     gen_push(ep + 9, ep, 21);
                 }
             } else {
-                if ((ep & 7) != 0 && color[ep - 9] == DARK && piece[ep - 9] == PION) {
+                if ((ep & 7) != 0 && color[ep - 9] == NOIR && piece[ep - 9] == PION) {
                     gen_push(ep - 9, ep, 21);
                 }
-                if ((ep & 7) != 7 && color[ep - 7] == DARK && piece[ep - 7] == PION) {
+                if ((ep & 7) != 7 && color[ep - 7] == NOIR && piece[ep - 7] == PION) {
                     gen_push(ep - 7, ep, 21);
                 }
             }
         }
 
     }
-    //int[] nbdir = {0, 8, 4, 4, 8, 8};
+
+    private boolean color_trait(int c) {
+        return color[c] == trait;
+    }
 
     private void gen(int cO) {
         int p = piece[cO];
@@ -178,12 +179,11 @@ public class Board implements Constants {
         switch (piece[cO]) {
             case CAVALIER:
             case ROI:
-                for (int d = 0; d < 8; ++d)
-                    CAVALIER_ROI(cO, p, d, cO);
+                range(0, 8).forEach(d -> CAVALIER_ROI(cO, p, d, cO));
                 break;
             default:
-                for (int d = 0; d < (p==DAME ? 8 : 4); ++d)
-                    DAME_FOU_TOUR(cO, p, d, cO);
+                range(0, (p == DAME ? 8 : 4))
+                        .forEach(d -> DAME_FOU_TOUR(cO, p, d, cO));
                 break;
         }
     }
@@ -216,7 +216,7 @@ public class Board implements Constants {
 
     private void gen_push(int from, int to, int bits) {
         if ((bits & 16) != 0) {
-            if (side == LIGHT) {
+            if (trait == BLANC) {
                 if (to <= H8) {
                     gen_promote(from, to, bits);
                     return;
@@ -241,7 +241,7 @@ public class Board implements Constants {
             int from;
             int to;
 
-            if (in_check(side)) {
+            if (in_check(trait)) {
                 return false;
             }
             switch (m.to) {
@@ -294,7 +294,7 @@ public class Board implements Constants {
         castle &= castle_mask[m.from] & castle_mask[m.to];
 
         if ((m.bits & 8) != 0) {
-            if (side == LIGHT) {
+            if (trait == BLANC) {
                 ep = m.to + 8;
             } else {
                 ep = m.to - 8;
@@ -309,7 +309,7 @@ public class Board implements Constants {
         }
 
         /* move the piece */
-        color[m.to] = side;
+        color[m.to] = trait;
         if ((m.bits & 32) != 0) {
             piece[m.to] = m.promote;
         } else {
@@ -320,7 +320,7 @@ public class Board implements Constants {
 
         /* erase the pawn if this is an en passant move */
         if ((m.bits & 4) != 0) {
-            if (side == LIGHT) {
+            if (trait == BLANC) {
                 color[m.to + 8] = VIDE;
                 piece[m.to + 8] = VIDE;
             } else {
@@ -329,7 +329,7 @@ public class Board implements Constants {
             }
         }
 
-        side ^= 1;
+        trait ^= 1;
         notrait ^= 1;
         if (in_check(notrait)) {
             takeback();
@@ -341,7 +341,7 @@ public class Board implements Constants {
 
     public void takeback() {
 
-        side ^= 1;
+        trait ^= 1;
         notrait ^= 1;
 
         Move m = um.mov;
@@ -349,7 +349,7 @@ public class Board implements Constants {
         ep = um.ep;
         fifty = um.fifty;
 
-        color[m.from] = side;
+        color[m.from] = trait;
         if ((m.bits & 32) != 0) {
             piece[m.from] = PION;
         } else {
@@ -388,13 +388,13 @@ public class Board implements Constants {
                     to = -1;
                     break;
             }
-            color[to] = side;
+            color[to] = trait;
             piece[to] = TOUR;
             color[from] = VIDE;
             piece[from] = VIDE;
         }
         if ((m.bits & 4) != 0) {
-            if (side == LIGHT) {
+            if (trait == BLANC) {
                 color[m.to + 8] = notrait;
                 piece[m.to + 8] = PION;
             } else {
@@ -413,10 +413,10 @@ public class Board implements Constants {
                 case VIDE:
                     System.out.print(". ");
                     break;
-                case LIGHT:
+                case BLANC:
                     System.out.printf(piece_char_light[piece[i]] + " ");
                     break;
-                case DARK:
+                case NOIR:
                     System.out.printf(piece_char_dark[piece[i]] + " ");
                     break;
             }
